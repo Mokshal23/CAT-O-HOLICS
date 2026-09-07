@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAT-holics // Master Study Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000000'/><text x='50' y='68' font-size='60' text-anchor='middle' fill='%23ffffff' font-family='monospace' font-weight='bold'>C</text></svg>">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- TOP NAVIGATION -->
+  <header class="top-nav">
+    <div class="brand" onclick="navigateTo('home')">
+      <span class="brand-title">CAT-holics</span>
+      <span class="brand-sub">Study Vault</span>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="home" onclick="navigateTo('home')">Home</button>
+      <button class="nav-tab" data-tab="QA" onclick="navigateTo('QA')">QA <span class="tab-badge" id="badge-qa">398</span></button>
+      <button class="nav-tab" data-tab="DILR" onclick="navigateTo('DILR')">DILR <span class="tab-badge" id="badge-dilr">64</span></button>
+      <button class="nav-tab" data-tab="VARC" onclick="navigateTo('VARC')">VARC <span class="tab-badge" id="badge-varc">190</span></button>
+      <button class="nav-tab" data-tab="Strategy" onclick="navigateTo('Strategy')">Strategy <span class="tab-badge" id="badge-strategy">27</span></button>
+      <button class="nav-tab" data-tab="bookmarks" onclick="navigateTo('bookmarks')">★ Bookmarks <span class="tab-badge" id="badge-bookmarks">0</span></button>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="search-btn" onclick="openSearchModal()">
+        <span>Search</span>
+        <kbd>/</kbd>
+      </button>
+      <div class="global-stats" id="read-stats-counter">0 / 679 Read</div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="app">
+    <!-- Populated by JavaScript -->
+  </main>
+
+  <!-- IMAGE LIGHTBOX MODAL -->
+  <div class="lightbox-modal" id="lightbox-modal" onclick="closeLightboxOnBackdrop(event)">
+    <div class="lightbox-toolbar">
+      <div class="lightbox-title" id="lightbox-title">Problem Sheet</div>
+      <div class="lightbox-controls">
+        <button class="lightbox-btn" onclick="zoomImage(0.25)">Zoom In (+)</button>
+        <button class="lightbox-btn" onclick="zoomImage(-0.25)">Zoom Out (-)</button>
+        <button class="lightbox-btn" onclick="resetZoom()">Reset</button>
+        <button class="lightbox-btn" onclick="closeLightbox()">Close (Esc)</button>
+      </div>
+    </div>
+    <div class="lightbox-content" id="lightbox-content">
+      <img src="" alt="" class="lightbox-img" id="lightbox-img">
+    </div>
+  </div>
+
+  <!-- SEARCH MODAL -->
+  <div class="search-modal" id="search-modal" onclick="closeSearchOnBackdrop(event)">
+    <div class="search-box" onclick="event.stopPropagation()">
+      <div class="search-input-wrap">
+        <input type="text" id="search-input" class="search-input" placeholder="Search concepts, questions, series (e.g. Algebra 20, Knockouts, Venn, ABC)..." autocomplete="off">
+        <kbd style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.75rem;">ESC to close</kbd>
+      </div>
+      <div class="search-results-list" id="search-results">
+        <!-- Results injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD DATA & LOGIC -->
+  <script src="data/cat_study_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
