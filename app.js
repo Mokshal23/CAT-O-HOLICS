@@ -577,12 +577,12 @@
 
               <div class="action-divider"></div>
 
-              <button class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})" title="Toggle Read Status (M)">
-                <span>${isRead ? '&#10003; Read' : 'Mark as Read'}</span>
+              <button id="btn-mark-read" class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})" title="Toggle Read Status (M)">
+                <span id="label-mark-read">${isRead ? '&#10003; Read' : 'Mark as Read'}</span>
                 <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">M</kbd>
               </button>
-              <button class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})" title="Bookmark Lesson (B)">
-                <span>${isStarred ? '★ Starred' : '☆ Star'}</span>
+              <button id="btn-star-post" class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})" title="Bookmark Lesson (B)">
+                <span id="label-star-post">${isStarred ? '★ Starred' : '☆ Star'}</span>
                 <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">B</kbd>
               </button>
               <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="action-btn" title="Open original WordPress blog post">
@@ -627,6 +627,9 @@
   };
 
   window.toggleReadStatus = function (pid) {
+    pid = pid || activePostId;
+    if (!pid) return;
+
     if (readPosts.has(pid)) {
       readPosts.delete(pid);
     } else {
@@ -635,21 +638,23 @@
     localStorage.setItem(LS_READ, JSON.stringify([...readPosts]));
     updateBadges();
 
-    // Update button state
-    const btn = event.currentTarget;
-    if (btn) {
-      const isRead = readPosts.has(pid);
+    const isRead = readPosts.has(pid);
+
+    // Update active post toolbar button
+    const btn = document.getElementById('btn-mark-read');
+    if (btn && activePostId === pid) {
       btn.classList.toggle('active', isRead);
-      btn.querySelector('span').innerHTML = isRead ? '&#10003; Read' : 'Mark as Read';
+      const span = document.getElementById('label-mark-read') || btn.querySelector('span');
+      if (span) span.innerHTML = isRead ? '&#10003; Read' : 'Mark as Read';
     }
 
     // Refresh sidebar item
-    const sidebarEl = document.querySelector(`.post-item.active`);
+    const sidebarEl = document.querySelector(`.post-item[data-post-id="${pid}"]`);
     if (sidebarEl) {
-      sidebarEl.classList.toggle('read', readPosts.has(pid));
+      sidebarEl.classList.toggle('read', isRead);
       const check = sidebarEl.querySelector('.post-read-check');
       if (check) check.remove();
-      if (readPosts.has(pid)) {
+      if (isRead) {
         const meta = sidebarEl.querySelector('.post-item-meta');
         if (meta) meta.insertAdjacentHTML('beforeend', '<span class="post-read-check">&#10003;</span>');
       }
@@ -657,6 +662,9 @@
   };
 
   window.toggleBookmark = function (pid) {
+    pid = pid || activePostId;
+    if (!pid) return;
+
     if (bookmarkedPosts.has(pid)) {
       bookmarkedPosts.delete(pid);
     } else {
@@ -665,21 +673,30 @@
     localStorage.setItem(LS_BOOKMARKS, JSON.stringify([...bookmarkedPosts]));
     updateBadges();
 
-    const btn = event.currentTarget;
-    if (btn) {
-      const isStarred = bookmarkedPosts.has(pid);
+    const isStarred = bookmarkedPosts.has(pid);
+
+    // Update active post toolbar button
+    const btn = document.getElementById('btn-star-post');
+    if (btn && activePostId === pid) {
       btn.classList.toggle('active', isStarred);
-      btn.querySelector('span').textContent = isStarred ? '★ Starred' : '☆ Star';
+      const span = document.getElementById('label-star-post') || btn.querySelector('span');
+      if (span) span.textContent = isStarred ? '★ Starred' : '☆ Star';
     }
 
-    const sidebarEl = document.querySelector(`.post-item.active`);
+    // Refresh sidebar item
+    const sidebarEl = document.querySelector(`.post-item[data-post-id="${pid}"]`);
     if (sidebarEl) {
       const star = sidebarEl.querySelector('.post-star-icon');
       if (star) star.remove();
-      if (bookmarkedPosts.has(pid)) {
+      if (isStarred) {
         const meta = sidebarEl.querySelector('.post-item-meta');
         if (meta) meta.insertAdjacentHTML('afterbegin', '<span class="post-star-icon">★</span>');
       }
+    }
+
+    // If currently on bookmarks tab, re-render to reflect changes immediately
+    if (currentTab === 'bookmarks') {
+      renderBookmarks(document.getElementById('app'));
     }
   };
 
@@ -840,37 +857,62 @@
     }
 
     window.addEventListener('keydown', (e) => {
-      // Don't trigger shortcuts if typing in input
-      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+      // Don't trigger shortcuts if typing in input or textarea
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         if (e.key === 'Escape') {
           closeSearchModal();
         }
         return;
       }
 
+      const lightbox = document.getElementById('lightbox-modal');
+      const isLightboxOpen = lightbox && lightbox.classList.contains('open');
+
+      const searchModal = document.getElementById('search-modal');
+      const isSearchOpen = searchModal && searchModal.classList.contains('open');
+
       if (e.key === '/') {
         e.preventDefault();
         openSearchModal();
       } else if (e.key === 'Escape') {
-        closeLightbox();
-        closeSearchModal();
+        if (isLightboxOpen) closeLightbox();
+        if (isSearchOpen) closeSearchModal();
       } else if (e.key === 'm' || e.key === 'M') {
-        if (activePostId) {
+        if (activePostId && !isLightboxOpen && !isSearchOpen) {
+          e.preventDefault();
           toggleReadStatus(activePostId);
         }
       } else if (e.key === 'b' || e.key === 'B') {
-        if (activePostId) {
+        if (activePostId && !isLightboxOpen && !isSearchOpen) {
+          e.preventDefault();
           toggleBookmark(activePostId);
         }
       } else if (e.key === 's' || e.key === 'S') {
-        if (currentTab !== 'home' && currentTab !== 'bookmarks') {
+        if (currentTab !== 'home' && currentTab !== 'bookmarks' && !isLightboxOpen && !isSearchOpen) {
           e.preventDefault();
           toggleSidebar();
         }
       } else if (e.key === '[' || e.key === 'ArrowLeft') {
-        navigateStep(-1);
+        if (!isLightboxOpen && !isSearchOpen) {
+          e.preventDefault();
+          navigateStep(-1);
+        }
       } else if (e.key === ']' || e.key === 'ArrowRight') {
-        navigateStep(1);
+        if (!isLightboxOpen && !isSearchOpen) {
+          e.preventDefault();
+          navigateStep(1);
+        }
+      } else if (isLightboxOpen) {
+        if (e.key === '+' || e.key === '=') {
+          e.preventDefault();
+          zoomImage(0.25);
+        } else if (e.key === '-' || e.key === '_') {
+          e.preventDefault();
+          zoomImage(-0.25);
+        } else if (e.key === '0') {
+          e.preventDefault();
+          resetZoom();
+        }
       }
     });
   }
