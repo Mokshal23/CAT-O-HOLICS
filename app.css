@@ -650,7 +650,8 @@ main#app {
 .post-action-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 .action-btn {
   background: var(--bg-surface);
@@ -660,20 +661,37 @@ main#app {
   padding: 0.35rem 0.65rem;
   border-radius: 4px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   transition: all 0.15s;
+  text-decoration: none;
+  user-select: none;
 }
 .action-btn:hover {
   border-color: var(--border-light);
   color: var(--text-primary);
+  background: var(--bg-card);
 }
 .action-btn.active {
   background: #ffffff;
   color: #000000;
   border-color: #ffffff;
   font-weight: 600;
+}
+.action-btn:disabled,
+.action-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: var(--border-dim);
+  color: var(--text-muted);
+}
+.action-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-dim);
+  margin: 0 0.15rem;
 }
 
 /* Post text body */
@@ -857,47 +875,7 @@ main#app {
   margin-bottom: 0.5rem;
 }
 
-/* FOOTER STEPPER NAV */
-.stepper-nav {
-  margin-top: 4rem;
-  border-top: 1px solid var(--border-dim);
-  padding-top: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-.step-btn {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-dim);
-  border-radius: 6px;
-  padding: 0.75rem 1.25rem;
-  color: var(--text-primary);
-  text-decoration: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  max-width: 45%;
-  transition: all 0.15s;
-}
-.step-btn:hover {
-  background: var(--bg-card);
-  border-color: var(--border-light);
-}
-.step-dir {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-.step-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 
 /* LIGHTBOX MODAL */
 .lightbox-modal {
@@ -1077,13 +1055,6 @@ main#app {
   }
   .image-card-body {
     padding: 0.75rem;
-  }
-  .stepper-nav {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .step-btn {
-    max-width: 100%;
   }
 }
 

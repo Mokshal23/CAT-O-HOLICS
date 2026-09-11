@@ -387,7 +387,7 @@
           const isStarred = bookmarkedPosts.has(p.id);
 
           html += `
-            <div class="post-item ${isActive ? 'active' : ''} ${isRead ? 'read' : ''}" onclick="selectPost(${p.id})">
+            <div class="post-item ${isActive ? 'active' : ''} ${isRead ? 'read' : ''}" data-post-id="${p.id}" onclick="selectPost(${p.id})">
               <span class="post-item-title">${escapeHtml(p.title)}</span>
               <div class="post-item-meta">
                 ${isStarred ? '<span class="post-star-icon">★</span>' : ''}
@@ -440,12 +440,14 @@
     localStorage.setItem(LS_LAST_POST, postId);
     window.location.hash = `post-${postId}`;
 
-    // Update active class in sidebar
+    // Update active class in sidebar and auto-scroll to it
     document.querySelectorAll('.post-item').forEach(el => {
-      el.classList.remove('active');
+      const isCurrent = el.getAttribute('data-post-id') === String(postId);
+      el.classList.toggle('active', isCurrent);
+      if (isCurrent) {
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     });
-    const clicked = event ? event.currentTarget : null;
-    if (clicked) clicked.classList.add('active');
 
     const post = postMap.get(postId);
     const panel = document.getElementById('content-panel');
@@ -564,11 +566,22 @@
               ${tagsHtml}
             </div>
             <div class="post-action-buttons">
-              <button class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})">
+              <button class="action-btn nav-btn ${!prevPost ? 'disabled' : ''}" onclick="${prevPost ? `selectPost(${prevPost.id})` : ''}" ${!prevPost ? 'disabled' : ''} title="${prevPost ? 'Previous: ' + escapeHtml(prevPost.title) + ' (Left Arrow or [)' : 'No previous lesson'}">
+                <span>&larr; Prev</span>
+                <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">[</kbd>
+              </button>
+              <button class="action-btn nav-btn ${!nextPost ? 'disabled' : ''}" onclick="${nextPost ? `selectPost(${nextPost.id})` : ''}" ${!nextPost ? 'disabled' : ''} title="${nextPost ? 'Next: ' + escapeHtml(nextPost.title) + ' (Right Arrow or ])' : 'No next lesson'}">
+                <span>Next &rarr;</span>
+                <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">]</kbd>
+              </button>
+
+              <div class="action-divider"></div>
+
+              <button class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})" title="Toggle Read Status (M)">
                 <span>${isRead ? '&#10003; Read' : 'Mark as Read'}</span>
                 <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">M</kbd>
               </button>
-              <button class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})">
+              <button class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})" title="Bookmark Lesson (B)">
                 <span>${isStarred ? '★ Starred' : '☆ Star'}</span>
                 <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">B</kbd>
               </button>
@@ -584,22 +597,6 @@
         ${imagesHtml}
 
         ${commentsHtml}
-
-        <div class="stepper-nav">
-          ${prevPost ? `
-            <button class="step-btn" onclick="selectPost(${prevPost.id})" style="text-align: left;">
-              <span class="step-dir">&larr; Previous</span>
-              <span class="step-title">${escapeHtml(prevPost.title)}</span>
-            </button>
-          ` : '<div></div>'}
-
-          ${nextPost ? `
-            <button class="step-btn" onclick="selectPost(${nextPost.id})" style="text-align: right; margin-left: auto;">
-              <span class="step-dir">Next &rarr;</span>
-              <span class="step-title">${escapeHtml(nextPost.title)}</span>
-            </button>
-          ` : '<div></div>'}
-        </div>
       </div>
     `;
   }
