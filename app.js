@@ -16,10 +16,12 @@
   const LS_BOOKMARKS = 'cat_vault_bookmarks';
   const LS_LAST_POST = 'cat_vault_last_post';
   const LS_COLLAPSED = 'cat_vault_collapsed';
+  const LS_SIDEBAR_COLLAPSED = 'cat_vault_sidebar_collapsed';
 
   let readPosts = new Set(JSON.parse(localStorage.getItem(LS_READ) || '[]'));
   let bookmarkedPosts = new Set(JSON.parse(localStorage.getItem(LS_BOOKMARKS) || '[]'));
   let collapsedTopics = new Set(JSON.parse(localStorage.getItem(LS_COLLAPSED) || '[]'));
+  let isSidebarCollapsed = localStorage.getItem(LS_SIDEBAR_COLLAPSED) === 'true';
   let currentTab = 'home';
   let activePostId = null;
   let sidebarFilter = 'all'; // 'all' | 'unread' | 'starred'
@@ -303,10 +305,19 @@
     });
 
     container.innerHTML = `
-      <div class="section-view">
+      <div class="section-view ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}">
         <aside class="sidebar">
           <div class="sidebar-header">
-            <span class="sidebar-title">${section} Lessons</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="sidebar-toggle-icon-btn" onclick="toggleSidebar()" title="Collapse sidebar (S)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M9 3v18"/>
+                  <path d="m14 9-3 3 3 3"/>
+                </svg>
+              </button>
+              <span class="sidebar-title">${section} Lessons</span>
+            </div>
             <div style="display: flex; gap: 4px;">
               <button class="sidebar-filter-btn ${sidebarFilter === 'all' ? 'active' : ''}" onclick="setSidebarFilter('all')">All</button>
               <button class="sidebar-filter-btn ${sidebarFilter === 'unread' ? 'active' : ''}" onclick="setSidebarFilter('unread')">Unread</button>
@@ -506,8 +517,26 @@
     }
 
     return `
-      <div class="breadcrumbs">
-        <span>${p.section}</span> &rsaquo; <span>${escapeHtml(p.topic)}</span> &rsaquo; <span>${escapeHtml(p.subtopic)}</span>
+      <div class="breadcrumbs-row">
+        <div class="breadcrumbs">
+          <button class="expand-sidebar-pill-btn" onclick="toggleSidebar()" title="Show sidebar (S)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18"/>
+              <path d="m13 15 3-3-3-3"/>
+            </svg>
+            <span>Syllabus</span>
+          </button>
+          <span>${p.section}</span> &rsaquo; <span>${escapeHtml(p.topic)}</span> &rsaquo; <span>${escapeHtml(p.subtopic)}</span>
+        </div>
+        <button class="action-btn toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar (S)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M9 3v18"/>
+          </svg>
+          <span class="toggle-sidebar-text">${isSidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar'}</span>
+          <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">S</kbd>
+        </button>
       </div>
 
       <div class="post-view-header">
@@ -557,6 +586,22 @@
         ` : '<div></div>'}
       </div>
     `;
+  }
+
+  window.toggleSidebar = function () {
+    isSidebarCollapsed = !isSidebarCollapsed;
+    localStorage.setItem(LS_SIDEBAR_COLLAPSED, isSidebarCollapsed ? 'true' : 'false');
+    applySidebarState();
+  };
+
+  function applySidebarState() {
+    const view = document.querySelector('.section-view');
+    if (view) {
+      view.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
+    }
+    document.querySelectorAll('.toggle-sidebar-text').forEach(el => {
+      el.textContent = isSidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar';
+    });
   }
 
   window.toggleCommentsList = function () {
@@ -803,6 +848,11 @@
       } else if (e.key === 'b' || e.key === 'B') {
         if (activePostId) {
           toggleBookmark(activePostId);
+        }
+      } else if (e.key === 's' || e.key === 'S') {
+        if (currentTab !== 'home' && currentTab !== 'bookmarks') {
+          e.preventDefault();
+          toggleSidebar();
         }
       } else if (e.key === '[' || e.key === 'ArrowLeft') {
         navigateStep(-1);
