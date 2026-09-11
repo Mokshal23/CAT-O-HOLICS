@@ -348,6 +348,11 @@ main#app {
   height: calc(100vh - 60px);
   overflow: hidden;
   position: relative;
+  width: 100%;
+}
+
+.section-view.sidebar-collapsed {
+  justify-content: center;
 }
 
 /* SIDEBAR */
@@ -359,6 +364,7 @@ main#app {
   display: flex;
   flex-direction: column;
   height: 100%;
+  flex-shrink: 0;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
@@ -528,26 +534,36 @@ main#app {
 .content-panel {
   flex: 1;
   overflow-y: auto;
-  padding: 2.5rem 3.5rem 6rem;
+  padding: 2.25rem 2.5rem 6rem;
   background: var(--bg-main);
-  max-width: 1050px;
-  margin: 0 auto;
   width: 100%;
-  transition: max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
 }
 
 .section-view.sidebar-collapsed .content-panel {
-  max-width: 1220px;
-  padding: 2.5rem 4.5rem 6rem;
+  padding: 2.25rem 3rem 6rem;
+}
+
+/* POST CONTAINER - Centered column for all content */
+.post-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  transition: max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-view.sidebar-collapsed .post-container {
+  max-width: 1060px; /* Generous comfortable reading and math sheet width */
 }
 
 .breadcrumbs-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   gap: 1rem;
+  width: 100%;
 }
 
 .breadcrumbs {
@@ -599,6 +615,7 @@ main#app {
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border-dim);
   padding-bottom: 1.5rem;
+  width: 100%;
 }
 .post-main-title {
   font-size: 1.85rem;
@@ -664,10 +681,25 @@ main#app {
   font-size: 0.95rem;
   line-height: 1.8;
   color: #d4d4d8;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
 }
 .post-body p {
   margin-bottom: 1.25rem;
+}
+.post-body p:has(img) {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+.post-body img {
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  display: block !important;
+  margin: 1.5rem auto !important;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
 }
 .post-body a {
   color: #ffffff;
@@ -695,6 +727,7 @@ main#app {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
 }
 .image-card {
   background: #050505;
@@ -702,9 +735,12 @@ main#app {
   border-radius: 6px;
   overflow: hidden;
   position: relative;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 .image-header {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.25rem;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-dim);
   display: flex;
@@ -717,6 +753,7 @@ main#app {
 .image-zoom-hint {
   cursor: pointer;
   color: var(--text-secondary);
+  transition: color 0.15s;
 }
 .image-zoom-hint:hover {
   color: #ffffff;
@@ -724,20 +761,23 @@ main#app {
 .image-card-body {
   display: flex;
   justify-content: center;
-  padding: 1rem;
+  align-items: center;
+  padding: 1.5rem;
   background: #09090b;
   cursor: zoom-in;
 }
 .sheet-image {
   max-width: 100%;
+  width: auto;
   height: auto;
-  border-radius: 3px;
+  border-radius: 4px;
   display: block;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.2s;
+  margin: 0 auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.2s, transform 0.2s;
 }
 .sheet-image:hover {
-  opacity: 0.95;
+  opacity: 0.96;
 }
 
 /* READER COMMENTS & AUTHOR REPLIES */
@@ -1016,3 +1056,34 @@ main#app {
   font-size: 2rem;
   margin-bottom: 1rem;
 }
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 900px) {
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.7);
+  }
+  .content-panel {
+    padding: 1.5rem 1.25rem 5rem;
+  }
+  .section-view.sidebar-collapsed .content-panel {
+    padding: 1.5rem 1.25rem 5rem;
+  }
+  .post-main-title {
+    font-size: 1.4rem;
+  }
+  .image-card-body {
+    padding: 0.75rem;
+  }
+  .stepper-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .step-btn {
+    max-width: 100%;
+  }
+}
+

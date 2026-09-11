@@ -516,74 +516,90 @@
       `;
     }
 
+    // Clean post HTML to avoid duplicate images if images array exists
+    let cleanContent = p.content_html || '';
+    if (p.images && p.images.length > 0 && cleanContent) {
+      cleanContent = cleanContent
+        .replace(/<figure[^>]*>[\s\S]*?<\/figure>/gi, '')
+        .replace(/<img[^>]*>/gi, '')
+        .replace(/<p>\s*(?:&nbsp;|\s)*<\/p>/gi, '')
+        .trim();
+    }
+
+    const bodyHtml = cleanContent 
+      ? `<div class="post-body">${cleanContent}</div>` 
+      : (!p.images || p.images.length === 0 
+          ? `<div class="post-body"><p style="color:var(--text-muted); font-style:italic;">This lesson is primarily contained in the problem sheet below.</p></div>` 
+          : '');
+
     return `
-      <div class="breadcrumbs-row">
-        <div class="breadcrumbs">
-          <button class="expand-sidebar-pill-btn" onclick="toggleSidebar()" title="Show sidebar (S)">
+      <div class="post-container">
+        <div class="breadcrumbs-row">
+          <div class="breadcrumbs">
+            <button class="expand-sidebar-pill-btn" onclick="toggleSidebar()" title="Show sidebar (S)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 3v18"/>
+                <path d="m13 15 3-3-3-3"/>
+              </svg>
+              <span>Syllabus</span>
+            </button>
+            <span>${p.section}</span> &rsaquo; <span>${escapeHtml(p.topic)}</span> &rsaquo; <span>${escapeHtml(p.subtopic)}</span>
+          </div>
+          <button class="action-btn toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar (S)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2"/>
               <path d="M9 3v18"/>
-              <path d="m13 15 3-3-3-3"/>
             </svg>
-            <span>Syllabus</span>
+            <span class="toggle-sidebar-text">${isSidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar'}</span>
+            <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">S</kbd>
           </button>
-          <span>${p.section}</span> &rsaquo; <span>${escapeHtml(p.topic)}</span> &rsaquo; <span>${escapeHtml(p.subtopic)}</span>
         </div>
-        <button class="action-btn toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar (S)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <path d="M9 3v18"/>
-          </svg>
-          <span class="toggle-sidebar-text">${isSidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar'}</span>
-          <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">S</kbd>
-        </button>
-      </div>
 
-      <div class="post-view-header">
-        <h1 class="post-main-title">${escapeHtml(p.title)}</h1>
-        <div class="post-meta-toolbar">
-          <div class="post-tags-list">
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-right: 0.5rem;">${p.date}</span>
-            ${tagsHtml}
-          </div>
-          <div class="post-action-buttons">
-            <button class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})">
-              <span>${isRead ? '&#10003; Read' : 'Mark as Read'}</span>
-              <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">M</kbd>
-            </button>
-            <button class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})">
-              <span>${isStarred ? '★ Starred' : '☆ Star'}</span>
-              <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">B</kbd>
-            </button>
-            <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="action-btn" title="Open original WordPress blog post">
-              <span>Blog ↗</span>
-            </a>
+        <div class="post-view-header">
+          <h1 class="post-main-title">${escapeHtml(p.title)}</h1>
+          <div class="post-meta-toolbar">
+            <div class="post-tags-list">
+              <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-right: 0.5rem;">${p.date}</span>
+              ${tagsHtml}
+            </div>
+            <div class="post-action-buttons">
+              <button class="action-btn ${isRead ? 'active' : ''}" onclick="toggleReadStatus(${p.id})">
+                <span>${isRead ? '&#10003; Read' : 'Mark as Read'}</span>
+                <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">M</kbd>
+              </button>
+              <button class="action-btn ${isStarred ? 'active' : ''}" onclick="toggleBookmark(${p.id})">
+                <span>${isStarred ? '★ Starred' : '☆ Star'}</span>
+                <kbd style="font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6">B</kbd>
+              </button>
+              <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="action-btn" title="Open original WordPress blog post">
+                <span>Blog ↗</span>
+              </a>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="post-body">
-        ${p.content_html || '<p style="color:var(--text-muted); font-style:italic;">This lesson is primarily contained in the problem sheet below.</p>'}
-      </div>
+        ${bodyHtml}
 
-      ${imagesHtml}
+        ${imagesHtml}
 
-      ${commentsHtml}
+        ${commentsHtml}
 
-      <div class="stepper-nav">
-        ${prevPost ? `
-          <button class="step-btn" onclick="selectPost(${prevPost.id})" style="text-align: left;">
-            <span class="step-dir">&larr; Previous</span>
-            <span class="step-title">${escapeHtml(prevPost.title)}</span>
-          </button>
-        ` : '<div></div>'}
+        <div class="stepper-nav">
+          ${prevPost ? `
+            <button class="step-btn" onclick="selectPost(${prevPost.id})" style="text-align: left;">
+              <span class="step-dir">&larr; Previous</span>
+              <span class="step-title">${escapeHtml(prevPost.title)}</span>
+            </button>
+          ` : '<div></div>'}
 
-        ${nextPost ? `
-          <button class="step-btn" onclick="selectPost(${nextPost.id})" style="text-align: right; margin-left: auto;">
-            <span class="step-dir">Next &rarr;</span>
-            <span class="step-title">${escapeHtml(nextPost.title)}</span>
-          </button>
-        ` : '<div></div>'}
+          ${nextPost ? `
+            <button class="step-btn" onclick="selectPost(${nextPost.id})" style="text-align: right; margin-left: auto;">
+              <span class="step-dir">Next &rarr;</span>
+              <span class="step-title">${escapeHtml(nextPost.title)}</span>
+            </button>
+          ` : '<div></div>'}
+        </div>
       </div>
     `;
   }
