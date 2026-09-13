@@ -15,6 +15,7 @@
   const LS_READ = 'cat_vault_read';
   const LS_BOOKMARKS = 'cat_vault_bookmarks';
   const LS_LAST_POST = 'cat_vault_last_post';
+  const LS_SECTION_LAST_POST = 'cat_vault_sec_last_post';
   const LS_COLLAPSED = 'cat_vault_collapsed';
   const LS_SIDEBAR_COLLAPSED = 'cat_vault_sidebar_collapsed';
 
@@ -22,9 +23,38 @@
   let bookmarkedPosts = new Set(JSON.parse(localStorage.getItem(LS_BOOKMARKS) || '[]'));
   let collapsedTopics = new Set(JSON.parse(localStorage.getItem(LS_COLLAPSED) || '[]'));
   let isSidebarCollapsed = localStorage.getItem(LS_SIDEBAR_COLLAPSED) === 'true';
+
+  let lastPostBySection = {};
+  try {
+    lastPostBySection = JSON.parse(localStorage.getItem(LS_SECTION_LAST_POST) || '{}') || {};
+  } catch (e) {
+    lastPostBySection = {};
+  }
+
   let currentTab = 'home';
   let activePostId = null;
   let sidebarFilter = 'all'; // 'all' | 'unread' | 'starred'
+
+  function setSectionActivePost(section, postId) {
+    if (!section || !postId) return;
+    lastPostBySection[section] = postId;
+    try {
+      localStorage.setItem(LS_SECTION_LAST_POST, JSON.stringify(lastPostBySection));
+      localStorage.setItem(LS_LAST_POST, String(postId));
+    } catch (e) {
+      console.error('Failed to save active post state', e);
+    }
+  }
+
+  function updateUrlHash(hashStr) {
+    if (window.location.hash !== `#${hashStr}`) {
+      if (history.replaceState) {
+        history.replaceState(null, '', `#${hashStr}`);
+      } else {
+        window.location.hash = hashStr;
+      }
+    }
+  }
 
   // Lightbox state
   let currentZoom = 1.0;
@@ -65,7 +95,6 @@
   // --- ROUTING & NAVIGATION ---
   window.navigateTo = function (tab, postId = null) {
     currentTab = tab;
-    window.location.hash = postId ? `post-${postId}` : tab;
 
     // Update Tab UI
     document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -75,8 +104,10 @@
     const app = document.getElementById('app');
 
     if (tab === 'home') {
+      updateUrlHash('home');
       renderHome(app);
     } else if (tab === 'bookmarks') {
+      updateUrlHash('bookmarks');
       renderBookmarks(app);
     } else {
       renderSection(app, tab, postId);
@@ -331,17 +362,29 @@
       return;
     }
 
-    // Determine active post
+    // Determine active post:
+    // 1. Explicit targetPostId (from direct link, search result, bookmark click)
     let activePost = null;
     if (targetPostId) {
       activePost = postMap.get(targetPostId);
     }
+    // 2. Saved last active post for this section (retains position whether marked as read or unmarked)
     if (!activePost || activePost.section !== section) {
-      // Pick first unread post, or first post
+      const savedSecPostId = lastPostBySection[section];
+      if (savedSecPostId && postMap.has(savedSecPostId)) {
+        const candidate = postMap.get(savedSecPostId);
+        if (candidate.section === section) {
+          activePost = candidate;
+        }
+      }
+    }
+    // 3. Fallback: first unread post in section, or 1st post
+    if (!activePost || activePost.section !== section) {
       activePost = secPosts.find(p => !readPosts.has(p.id)) || secPosts[0];
     }
     activePostId = activePost.id;
-    localStorage.setItem(LS_LAST_POST, activePostId);
+    setSectionActivePost(section, activePostId);
+    updateUrlHash(`post-${activePostId}`);
 
     // Build hierarchical tree for sidebar
     const topicsMap = new Map();
@@ -404,7 +447,15 @@
 
     topicsMap.forEach((subMap, topicName) => {
       const topicKey = `${currentTab}_${topicName}`;
-      const isCollapsed = collapsedTopics.has(topicKey);
+
+      // Ensure the topic containing currentActiveId is never collapsed
+      let hasActivePost = false;
+      subMap.forEach(items => {
+        if (items.some(p => p.id === currentActiveId)) {
+          hasActivePost = true;
+        }
+      });
+      const isCollapsed = collapsedTopics.has(topicKey) && !hasActivePost;
 
       // Filter check
       let topicPostCount = 0;
@@ -466,6 +517,7 @@
   }
 
   function matchesFilter(p) {
+    if (p.id === activePostId) return true; // Always display active post in sidebar
     if (sidebarFilter === 'unread') return !readPosts.has(p.id);
     if (sidebarFilter === 'starred') return bookmarkedPosts.has(p.id);
     return true;
@@ -492,8 +544,11 @@
 
   window.selectPost = function (postId) {
     activePostId = postId;
-    localStorage.setItem(LS_LAST_POST, postId);
-    window.location.hash = `post-${postId}`;
+    const post = postMap.get(postId);
+    if (post) {
+      setSectionActivePost(post.section, postId);
+    }
+    updateUrlHash(`post-${postId}`);
 
     // Update active class in sidebar and auto-scroll to it
     document.querySelectorAll('.post-item').forEach(el => {
@@ -504,7 +559,6 @@
       }
     });
 
-    const post = postMap.get(postId);
     const panel = document.getElementById('content-panel');
     if (panel && post) {
       panel.innerHTML = renderPostContent(post);
