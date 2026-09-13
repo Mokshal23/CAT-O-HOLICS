@@ -17,12 +17,27 @@
     </div>
 
     <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="home" onclick="navigateTo('home')">Home</button>
-      <button class="nav-tab" data-tab="QA" onclick="navigateTo('QA')">QA <span class="tab-badge" id="badge-qa">398</span></button>
-      <button class="nav-tab" data-tab="DILR" onclick="navigateTo('DILR')">DILR <span class="tab-badge" id="badge-dilr">64</span></button>
-      <button class="nav-tab" data-tab="VARC" onclick="navigateTo('VARC')">VARC <span class="tab-badge" id="badge-varc">190</span></button>
-      <button class="nav-tab" data-tab="Strategy" onclick="navigateTo('Strategy')">Strategy <span class="tab-badge" id="badge-strategy">27</span></button>
-      <button class="nav-tab" data-tab="bookmarks" onclick="navigateTo('bookmarks')">★ Bookmarks <span class="tab-badge" id="badge-bookmarks">0</span></button>
+      <button class="nav-tab" data-tab="home" onclick="navigateTo('home')">Home</button>
+      <button class="nav-tab nav-tab-section" data-tab="QA" onclick="navigateTo('QA')">
+        <span class="nav-tab-title">QA</span>
+        <span class="nav-tab-counter" id="counter-qa">0 / 398 Read (0%)</span>
+      </button>
+      <button class="nav-tab nav-tab-section" data-tab="DILR" onclick="navigateTo('DILR')">
+        <span class="nav-tab-title">DILR</span>
+        <span class="nav-tab-counter" id="counter-dilr">0 / 64 Read (0%)</span>
+      </button>
+      <button class="nav-tab nav-tab-section" data-tab="VARC" onclick="navigateTo('VARC')">
+        <span class="nav-tab-title">VARC</span>
+        <span class="nav-tab-counter" id="counter-varc">0 / 190 Read (0%)</span>
+      </button>
+      <button class="nav-tab nav-tab-section" data-tab="Strategy" onclick="navigateTo('Strategy')">
+        <span class="nav-tab-title">Strategy</span>
+        <span class="nav-tab-counter" id="counter-strategy">0 / 27 Read (0%)</span>
+      </button>
+      <button class="nav-tab" data-tab="bookmarks" onclick="navigateTo('bookmarks')">
+        <span>★ Bookmarks</span>
+        <span class="tab-badge" id="badge-bookmarks">0</span>
+      </button>
     </nav>
 
     <div class="nav-actions">

@@ -85,16 +85,68 @@
     window.scrollTo(0, 0);
   };
 
-  function updateBadges() {
-    document.getElementById('badge-qa').textContent = postsBySection.QA.length;
-    document.getElementById('badge-dilr').textContent = postsBySection.DILR.length;
-    document.getElementById('badge-varc').textContent = postsBySection.VARC.length;
-    document.getElementById('badge-strategy').textContent = postsBySection.Strategy.length;
-    document.getElementById('badge-bookmarks').textContent = bookmarkedPosts.size;
+  function getSectionStats(sec) {
+    const secPosts = postsBySection[sec] || [];
+    const total = secPosts.length;
+    let readCount = 0;
+    for (let i = 0; i < secPosts.length; i++) {
+      if (readPosts.has(secPosts[i].id)) readCount++;
+    }
+    const pct = total > 0 ? Math.round((readCount / total) * 100) : 0;
+    return {
+      read: readCount,
+      total: total,
+      pct: pct,
+      text: `${readCount} / ${total} Read (${pct}%)`
+    };
+  }
 
+  function updateBadges() {
+    // 1. Overall counter (kept intact as requested)
     const total = posts.length;
     const read = readPosts.size;
-    document.getElementById('read-stats-counter').textContent = `${read} / ${total} Read (${Math.round((read / total) * 100 || 0)}%)`;
+    const globalCounter = document.getElementById('read-stats-counter');
+    if (globalCounter) {
+      globalCounter.textContent = `${read} / ${total} Read (${Math.round((read / total) * 100 || 0)}%)`;
+    }
+
+    // 2. Section-wise subtle counters below section names in navbar
+    const qa = getSectionStats('QA');
+    const dilr = getSectionStats('DILR');
+    const varc = getSectionStats('VARC');
+    const strat = getSectionStats('Strategy');
+
+    const elQa = document.getElementById('counter-qa');
+    if (elQa) elQa.textContent = qa.text;
+
+    const elDilr = document.getElementById('counter-dilr');
+    if (elDilr) elDilr.textContent = dilr.text;
+
+    const elVarc = document.getElementById('counter-varc');
+    if (elVarc) elVarc.textContent = varc.text;
+
+    const elStrat = document.getElementById('counter-strategy');
+    if (elStrat) elStrat.textContent = strat.text;
+
+    // 3. Section sidebar header counter (if viewing a section)
+    const sidebarSecCounter = document.getElementById('sidebar-sec-counter');
+    if (sidebarSecCounter && ['QA', 'DILR', 'VARC', 'Strategy'].includes(currentTab)) {
+      sidebarSecCounter.textContent = getSectionStats(currentTab).text;
+    }
+
+    // 4. Home section card footers (if on home view)
+    const homeQa = document.getElementById('home-card-qa');
+    if (homeQa) homeQa.textContent = qa.text;
+    const homeDilr = document.getElementById('home-card-dilr');
+    if (homeDilr) homeDilr.textContent = dilr.text;
+    const homeVarc = document.getElementById('home-card-varc');
+    if (homeVarc) homeVarc.textContent = varc.text;
+    const homeStrat = document.getElementById('home-card-strat');
+    if (homeStrat) homeStrat.textContent = strat.text;
+
+    // 5. Bookmarks badge
+    const bmEl = document.getElementById('badge-bookmarks');
+    if (bmEl) bmEl.textContent = bookmarkedPosts.size;
   }
 
   // --- HOME VIEW ---
@@ -157,7 +209,7 @@
               </p>
             </div>
             <div class="sec-card-footer">
-              <span>${postsBySection.QA.length} Lessons</span>
+              <span id="home-card-qa">${getSectionStats('QA').text}</span>
               <span class="sec-card-arrow">&rarr;</span>
             </div>
           </div>
@@ -172,7 +224,7 @@
               </p>
             </div>
             <div class="sec-card-footer">
-              <span>${postsBySection.DILR.length} Lessons</span>
+              <span id="home-card-dilr">${getSectionStats('DILR').text}</span>
               <span class="sec-card-arrow">&rarr;</span>
             </div>
           </div>
@@ -187,7 +239,7 @@
               </p>
             </div>
             <div class="sec-card-footer">
-              <span>${postsBySection.VARC.length} Lessons</span>
+              <span id="home-card-varc">${getSectionStats('VARC').text}</span>
               <span class="sec-card-arrow">&rarr;</span>
             </div>
           </div>
@@ -202,7 +254,7 @@
               </p>
             </div>
             <div class="sec-card-footer">
-              <span>${postsBySection.Strategy.length} Lessons</span>
+              <span id="home-card-strat">${getSectionStats('Strategy').text}</span>
               <span class="sec-card-arrow">&rarr;</span>
             </div>
           </div>
@@ -316,7 +368,10 @@
                   <path d="m14 9-3 3 3 3"/>
                 </svg>
               </button>
-              <span class="sidebar-title">${section} Lessons</span>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span class="sidebar-title">${section} Lessons</span>
+                <span class="sidebar-counter" id="sidebar-sec-counter">${getSectionStats(section).text}</span>
+              </div>
             </div>
             <div style="display: flex; gap: 4px;">
               <button class="sidebar-filter-btn ${sidebarFilter === 'all' ? 'active' : ''}" onclick="setSidebarFilter('all')">All</button>
